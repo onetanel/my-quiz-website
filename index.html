@@ -9,121 +9,106 @@
             font-family: Arial, sans-serif;
             text-align: center;
             direction: rtl;
+            margin: 0;
+            padding: 0;
         }
         .question {
             margin: 20px 0;
             font-size: 1.2em;
         }
-        .answers {
-            list-style: none;
-            padding: 0;
-        }
-        .answers li {
-            margin: 10px 0;
-            font-size: 1.1em;
-            border: 1px solid #ddd;
+        .answers button {
+            display: block;
+            margin: 5px auto;
             padding: 10px;
+            width: 50%;
+            font-size: 1em;
             cursor: pointer;
+            border: 2px solid #444;
             border-radius: 5px;
+            background-color: #f0f0f0;
+            transition: background-color 0.3s;
         }
-        .selected {
-            border-color: green;
+        .answers button.selected {
+            background-color: #4caf50;
+            color: white;
         }
         #result {
             font-size: 1.5em;
             color: green;
-        }
-        button {
             margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
+        }
+        #congrats-image {
+            display: none;
+            margin-top: 20px;
+            width: 200px;
         }
     </style>
 </head>
 <body>
     <h1>חידון במתמטיקה</h1>
-
     <div id="quiz">
-        <div class="question">
-            <p id="question-text"></p>
-        </div>
-        <ul class="answers" id="answers-list"></ul>
-        <button onclick="nextQuestion()">שאלה הבאה</button>
+        <div id="question-container"></div>
+        <div id="result"></div>
+        <img id="congrats-image" src="https://i.postimg.cc/Wz0TC0r0/image.png" alt="תמונה ברכה">
     </div>
-
-    <div id="result" style="display: none;"></div>
 
     <script>
         const questions = [
-            {
-                text: "מהי תוצאה של 3 + 5?",
-                answers: [8, 7, 6, 5],
-                correct: 8
-            },
-            {
-                text: "מהי תוצאה של 10 - 4?",
-                answers: [6, 5, 4, 7],
-                correct: 6
-            },
-            {
-                text: "מהי תוצאה של 3 * 3?",
-                answers: [9, 6, 12, 3],
-                correct: 9
-            }
+            { question: "כמה זה 3 + 5?", answers: [10, 9, 8, 6], correct: 8 },
+            { question: "כמה זה 4 - 10?", answers: [8, 7, 6, -6], correct: -6 },
+            { question: "כמה זה 9 * 3?", answers: [28, 27, 26, 25], correct: 27 }
         ];
-
-        let currentQuestion = 0;
+        
+        let currentQuestionIndex = 0;
         let score = 0;
 
-        function loadQuestion() {
-            const question = questions[currentQuestion];
-            document.getElementById("question-text").textContent = question.text;
-            
-            const answersList = document.getElementById("answers-list");
-            answersList.innerHTML = "";
-            
-            question.answers.sort((a, b) => b - a); // סידור יורד
-            question.answers.forEach((answer, index) => {
-                const li = document.createElement("li");
-                li.textContent = `${index + 1}. ${answer}`;
-                li.onclick = () => selectAnswer(li, answer);
-                answersList.appendChild(li);
-            });
+        const questionContainer = document.getElementById("question-container");
+        const resultContainer = document.getElementById("result");
+        const congratsImage = document.getElementById("congrats-image");
+
+        function showQuestion() {
+            const questionData = questions[currentQuestionIndex];
+            questionContainer.innerHTML = `
+                <div class="question">${questionData.question}</div>
+                <div class="answers">
+                    ${questionData.answers
+                        .map((answer, index) => 
+                            `<button onclick="selectAnswer(this, ${answer})">${index + 1}. ${answer}</button>`
+                        ).join('')}
+                </div>
+            `;
         }
 
-        function selectAnswer(element, answer) {
-            // מסירים עיצוב נבחר משאר התשובות
-            document.querySelectorAll(".answers li").forEach(li => li.classList.remove("selected"));
-            
-            // מוסיפים עיגול סביב התשובה שנבחרה
-            element.classList.add("selected");
+        function selectAnswer(button, selectedAnswer) {
+            const buttons = document.querySelectorAll(".answers button");
+            buttons.forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
 
-            // בודקים אם התשובה נכונה וממשיכים לשאלה הבאה
-            if (answer === questions[currentQuestion].correct) {
+            if (selectedAnswer === questions[currentQuestionIndex].correct) {
                 score++;
             }
-        }
-
-        function nextQuestion() {
-            currentQuestion++;
-            if (currentQuestion < questions.length) {
-                loadQuestion();
+            
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < questions.length) {
+                setTimeout(showQuestion, 500);
             } else {
                 showResult();
             }
         }
 
         function showResult() {
-            const percentage = (score / questions.length) * 100;
-            document.getElementById("quiz").style.display = "none";
-            document.getElementById("result").style.display = "block";
-            document.getElementById("result").textContent = `הציון שלך הוא: ${percentage}%`;
+            const scorePercent = (score / questions.length) * 100;
+            resultContainer.innerText = `ציון: ${scorePercent}%`;
+
+            if (scorePercent === 100) {
+                congratsImage.style.display = "block";
+            }
         }
 
-        // טוען את השאלה הראשונה
-        loadQuestion();
+        showQuestion();
     </script>
 </body>
 </html>
+
 
