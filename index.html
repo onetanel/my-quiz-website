@@ -12,13 +12,32 @@
         }
         .question {
             margin: 20px 0;
+            font-size: 1.2em;
         }
-        .answers button {
-            margin: 5px;
+        .answers {
+            list-style: none;
+            padding: 0;
+        }
+        .answers li {
+            margin: 10px 0;
+            font-size: 1.1em;
+            border: 1px solid #ddd;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .selected {
+            border-color: green;
         }
         #result {
             font-size: 1.5em;
             color: green;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -27,62 +46,84 @@
 
     <div id="quiz">
         <div class="question">
-            <p>1. מהי התוצאה של 5 + 3?</p>
-            <div class="answers">
-                <button onclick="checkAnswer(1, 6)">6</button>
-                <button onclick="checkAnswer(1, 7)">7</button>
-                <button onclick="checkAnswer(1, 8)">8</button>
-                <button onclick="checkAnswer(1, 9)">9</button>
-            </div>
+            <p id="question-text"></p>
         </div>
-
-        <div class="question">
-            <p>2. מהי התוצאה של 10 - 4?</p>
-            <div class="answers">
-                <button onclick="checkAnswer(2, 5)">5</button>
-                <button onclick="checkAnswer(2, 6)">6</button>
-                <button onclick="checkAnswer(2, 7)">7</button>
-                <button onclick="checkAnswer(2, 8)">8</button>
-            </div>
-        </div>
-
-        <div class="question">
-            <p>3. מהי התוצאה של 3 × 3?</p>
-            <div class="answers">
-                <button onclick="checkAnswer(3, 6)">6</button>
-                <button onclick="checkAnswer(3, 8)">8</button>
-                <button onclick="checkAnswer(3, 9)">9</button>
-                <button onclick="checkAnswer(3, 12)">12</button>
-            </div>
-        </div>
+        <ul class="answers" id="answers-list"></ul>
+        <button onclick="nextQuestion()">שאלה הבאה</button>
     </div>
 
-    <button onclick="showResult()">סיים חידון</button>
-
-    <div id="result"></div>
+    <div id="result" style="display: none;"></div>
 
     <script>
-        const correctAnswers = {
-            1: 8,
-            2: 6,
-            3: 9
-        };
-        let score = 0;
-        let answers = {};
+        const questions = [
+            {
+                text: "מהי תוצאה של 3 + 5?",
+                answers: [8, 7, 6, 5],
+                correct: 8
+            },
+            {
+                text: "מהי תוצאה של 10 - 4?",
+                answers: [6, 5, 4, 7],
+                correct: 6
+            },
+            {
+                text: "מהי תוצאה של 3 * 3?",
+                answers: [9, 6, 12, 3],
+                correct: 9
+            }
+        ];
 
-        function checkAnswer(questionNumber, answer) {
-            answers[questionNumber] = answer;
+        let currentQuestion = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById("question-text").textContent = question.text;
+            
+            const answersList = document.getElementById("answers-list");
+            answersList.innerHTML = "";
+            
+            question.answers.sort((a, b) => b - a); // סידור יורד
+            question.answers.forEach((answer, index) => {
+                const li = document.createElement("li");
+                li.textContent = `${index + 1}. ${answer}`;
+                li.onclick = () => selectAnswer(li, answer);
+                answersList.appendChild(li);
+            });
+        }
+
+        function selectAnswer(element, answer) {
+            // מסירים עיצוב נבחר משאר התשובות
+            document.querySelectorAll(".answers li").forEach(li => li.classList.remove("selected"));
+            
+            // מוסיפים עיגול סביב התשובה שנבחרה
+            element.classList.add("selected");
+
+            // בודקים אם התשובה נכונה וממשיכים לשאלה הבאה
+            if (answer === questions[currentQuestion].correct) {
+                score++;
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
         }
 
         function showResult() {
-            score = 0;
-            for (let question in correctAnswers) {
-                if (answers[question] === correctAnswers[question]) {
-                    score++;
-                }
-            }
-            document.getElementById("result").innerText = `ציון שלך: ${score} מתוך 3`;
+            const percentage = (score / questions.length) * 100;
+            document.getElementById("quiz").style.display = "none";
+            document.getElementById("result").style.display = "block";
+            document.getElementById("result").textContent = `הציון שלך הוא: ${percentage}%`;
         }
+
+        // טוען את השאלה הראשונה
+        loadQuestion();
     </script>
 </body>
 </html>
+
